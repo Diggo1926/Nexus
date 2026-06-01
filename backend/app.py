@@ -1,5 +1,4 @@
 import os
-import re
 import socket
 import logging
 from flask import Flask, request, jsonify, Response
@@ -49,27 +48,14 @@ if NEXUS_LOCAL_URL:
 else:
     logger.info('Modo LOCAL ativo — executando comandos diretamente')
 
-# ─── CORS ────────────────────────────────────────────────────────────────────
-# Aceita: origens do .env + qualquer subdominio *.vercel.app automaticamente
-_VERCEL_RE   = re.compile(r'^https://[a-zA-Z0-9][a-zA-Z0-9-]*\.vercel\.app$')
-_origens_env = [
-    o.strip()
-    for o in os.getenv('CORS_ORIGIN', 'http://localhost:5173').split(',')
-    if o.strip()
-]
-
-def _origem_permitida(origin: str) -> bool:
-    if not origin:
-        return False
-    if origin in _origens_env:
-        return True
-    if _VERCEL_RE.match(origin):
-        return True
-    return False
+# ─── CORS ─────────────────────────────────────────────────────────────────────
+# Origens permitidas definidas via CORS_ORIGIN no .env (separadas por virgula)
+cors_origin = os.getenv('CORS_ORIGIN', 'http://localhost:5173')
+origens = [o.strip() for o in cors_origin.split(',') if o.strip()]
 
 CORS(
     app,
-    origins=_origem_permitida,
+    origins=origens,
     allow_headers=['Content-Type', 'X-API-Key'],
     methods=['GET', 'POST', 'OPTIONS'],
     supports_credentials=False,
