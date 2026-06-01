@@ -24,10 +24,9 @@ export function Settings({ onSave }) {
   const testar = async () => {
     setTestando(true)
     setPing(null)
-    const baseUrl = (url.trim() || import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
     try {
       const t0 = Date.now()
-      const r  = await fetch(`${baseUrl}/health`, { signal: AbortSignal.timeout(5000) })
+      const r  = await fetch('/api/health', { signal: AbortSignal.timeout(5000) })
       const d  = await r.json()
       const ms = Date.now() - t0
       if (d.status === 'online') {
@@ -63,7 +62,7 @@ export function Settings({ onSave }) {
         <h2 className="font-grotesk font-semibold text-sm text-white">Conexao com o Servidor</h2>
 
         <div className="space-y-1.5">
-          <label className="label-micro">URL DA API</label>
+          <label className="label-micro">URL DA API (informativo)</label>
           <input
             type="url"
             value={url}
@@ -82,7 +81,7 @@ export function Settings({ onSave }) {
             aria-label="URL da API"
           />
           <p className="font-grotesk text-xs text-nx-border">
-            IP local em casa · Cloudflare Tunnel de fora
+            Apenas informativo — o proxy Vercel gerencia a conexao automaticamente
           </p>
         </div>
 

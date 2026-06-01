@@ -110,11 +110,11 @@ export function useStats(intervalo = 3000) {
   const timerRef = useRef(null)
 
   const poll = useCallback(async () => {
-    const { baseUrl, apiKey } = getConfig()
+    const { apiKey } = getConfig()
 
     const [health, statsRes] = await Promise.allSettled([
-      fetchJson(`${baseUrl}/health`, { signal: AbortSignal.timeout(3500) }),
-      fetchJson(`${baseUrl}/stats`, {
+      fetchJson('/api/health', { signal: AbortSignal.timeout(3500) }),
+      fetchJson('/api/stats', {
         headers: { 'X-API-Key': apiKey },
         signal: AbortSignal.timeout(3500),
       }),

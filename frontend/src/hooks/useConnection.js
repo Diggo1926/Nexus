@@ -29,7 +29,7 @@ export function useConnection() {
 
     let res
     try {
-      res = await fetch(`${baseUrl}${path}`, opts)
+      res = await fetch(`/api${path}`, opts)
     } catch {
       throw new Error('Sem conexao com o NEXUS')
     }
