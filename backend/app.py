@@ -1,7 +1,7 @@
 import os
 import socket
 import logging
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, make_response
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -49,17 +49,32 @@ else:
     logger.info('Modo LOCAL ativo — executando comandos diretamente')
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
-# Origens permitidas definidas via CORS_ORIGIN no .env (separadas por virgula)
-cors_origin = os.getenv('CORS_ORIGIN', 'http://localhost:5173')
-origens = [o.strip() for o in cors_origin.split(',') if o.strip()]
-
+# origins='*' temporariamente para desbloquear o deploy em producao
 CORS(
     app,
-    origins=origens,
+    origins='*',
     allow_headers=['Content-Type', 'X-API-Key'],
     methods=['GET', 'POST', 'OPTIONS'],
     supports_credentials=False,
 )
+
+# Handler explícito para garantir headers CORS em todas as respostas
+@app.after_request
+def after_request(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
+
+# Handler de preflight OPTIONS para todas as rotas
+@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    response = make_response()
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response, 200
 
 # ─── Rate limiting ────────────────────────────────────────────────────────────
 limiter = Limiter(
@@ -115,7 +130,9 @@ def _repassar_para_local():
 
 @app.before_request
 def autenticar():
-    """Valida a API Key em todas as rotas, exceto /health."""
+    """Valida a API Key em todas as rotas, exceto /health e preflight OPTIONS."""
+    if request.method == 'OPTIONS':
+        return None  # preflight CORS nao carrega X-API-Key
     if request.path == '/health' and request.method == 'GET':
         return None
     chave = request.headers.get('X-API-Key', '')
