@@ -1,8 +1,7 @@
 import os
 import socket
 import logging
-from flask import Flask, request, jsonify, Response, make_response
-from flask_cors import CORS
+from flask import Flask, request, jsonify, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
@@ -48,33 +47,26 @@ if NEXUS_LOCAL_URL:
 else:
     logger.info('Modo LOCAL ativo — executando comandos diretamente')
 
-# ─── CORS ─────────────────────────────────────────────────────────────────────
-# origins='*' temporariamente para desbloquear o deploy em producao
-CORS(
-    app,
-    origins='*',
-    allow_headers=['Content-Type', 'X-API-Key'],
-    methods=['GET', 'POST', 'OPTIONS'],
-    supports_credentials=False,
-)
-
-# Handler explícito para garantir headers CORS em todas as respostas
+# ─── CORS manual (sem flask-cors) ─────────────────────────────────────────────
+# Injeta os headers em todas as respostas, incluindo erros
 @app.after_request
-def after_request(response):
+def adicionar_cors(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key, Authorization'
+    response.headers['Access-Control-Max-Age'] = '86400'
     return response
 
-# Handler de preflight OPTIONS para todas as rotas
+# Responde preflights OPTIONS antes de qualquer middleware de autenticacao
 @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
-def handle_options(path):
-    response = make_response()
+def preflight(path):
+    response = app.make_response('')
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    return response, 200
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-API-Key, Authorization'
+    response.headers['Access-Control-Max-Age'] = '86400'
+    return response, 204
 
 # ─── Rate limiting ────────────────────────────────────────────────────────────
 limiter = Limiter(
