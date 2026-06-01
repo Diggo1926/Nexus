@@ -1,0 +1,16 @@
+# ─── Core (todas as plataformas) ──────────────────────────────────────────────
+flask==3.1.0
+flask-cors==5.0.0
+flask-limiter==3.9.0
+psutil==6.1.1
+wakeonlan==3.1.0
+python-dotenv==1.0.1
+GPUtil==1.4.0
+requests==2.32.3
+gunicorn==23.0.0
+
+# ─── Apenas Windows (PC local) ────────────────────────────────────────────────
+# No Railway (Linux) estas dependencias sao ignoradas automaticamente
+pywin32==311; sys_platform == "win32"
+pycaw==20240210; sys_platform == "win32"
+comtypes==1.4.8; sys_platform == "win32"

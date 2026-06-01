@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html {
+    background-color: #0D0D1A;
+  }
+
+  body {
+    background-color: #0D0D1A;
+    color: #fff;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    overscroll-behavior: none;
+    min-height: 100dvh;
+  }
+}
+
+@layer utilities {
+  /* Texto com gradiente NEXUS */
+  .nexus-text {
+    background: linear-gradient(90deg, #7C3AED, #3B82F6, #06B6D4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Padding seguro para nav inferior (notch iOS) */
+  .pb-safe-nav {
+    padding-bottom: max(5rem, calc(4rem + env(safe-area-inset-bottom)));
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Fonte mono para stats */
+  .font-mono-nx {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Micro label — 10px uppercase */
+  .label-micro {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94A3B8;
+  }
+}
+
+/* ─── Scrollbar minimalista ─── */
+::-webkit-scrollbar          { width: 2px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #7C3AED; border-radius: 99px; }
+
+/* ─── Slider de volume customizado ─── */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.6);
+  transition: transform 0.1s ease;
+  cursor: pointer;
+}
+
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+/* ─── Animacoes ─── */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px  6px rgba(124, 58, 237, 0.35),
+      0 0 60px 16px rgba(124, 58, 237, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 40px 14px rgba(124, 58, 237, 0.55),
+      0 0 80px 30px rgba(6, 182, 212, 0.18);
+  }
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(0.6); opacity: 0.4; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-120%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes spin-nx {
+  to { transform: rotate(360deg); }
+}
+
+.animate-pulse-glow  { animation: pulse-glow  2s ease-in-out infinite; }
+.animate-dot-pulse   { animation: dot-pulse   1.5s ease-in-out infinite; }
+.animate-slide-down  { animation: slide-down  0.28s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.animate-fade-up     { animation: fade-up     0.3s ease; }
+.animate-fade-in     { animation: fade-in     0.25s ease; }
+.animate-spin-nx     { animation: spin-nx     0.75s linear infinite; }
