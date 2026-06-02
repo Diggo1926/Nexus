@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-// Chaves do localStorage — devem coincidir com Settings.jsx
 const LS_URL = 'nexus_api_url'
 const LS_KEY = 'nexus_api_key'
 
@@ -11,23 +10,19 @@ function getConfig() {
   }
 }
 
-// Converte bytes para GB com 1 casa decimal
 const toGb = (bytes) =>
   bytes != null && bytes > 0 ? +(bytes / 1073741824).toFixed(1) : 0
 
-// Normaliza a resposta do /stats para o formato interno do frontend.
-// Aceita tanto os nomes em portugues (backend NEXUS padrao) quanto em ingles.
 function normalizar(raw) {
   if (!raw || typeof raw !== 'object') return null
 
-  const c = raw.cpu     || {}
-  const r = raw.ram     || {}
-  const g = raw.gpu     || null
-  const d = raw.disco   || raw.disk    || []
-  const n = raw.rede    || raw.network || {}
-  const u = raw.uptime  // pode ser numero (segundos) ou objeto
+  const c = raw.cpu    || {}
+  const r = raw.ram    || {}
+  const g = raw.gpu    || null
+  const d = raw.disco  || raw.disk    || []
+  const n = raw.rede   || raw.network || {}
+  const u = raw.uptime
 
-  // --- CPU ---
   const cpu = {
     percentual:     c.percentual    ?? c.percent    ?? 0,
     frequencia_mhz: c.frequencia_mhz ?? c.frequency  ?? c.freq ?? null,
@@ -36,7 +31,6 @@ function normalizar(raw) {
     temperatura:    c.temperatura    ?? c.temperature ?? null,
   }
 
-  // --- RAM ---
   const ram = {
     percentual: r.percentual ?? r.percent ?? 0,
     total_gb:   r.total_gb   ?? toGb(r.total) ?? 0,
@@ -44,7 +38,6 @@ function normalizar(raw) {
     livre_gb:   r.livre_gb   ?? toGb(r.free)  ?? r.livre_gb ?? 0,
   }
 
-  // --- GPU (opcional) ---
   const gpu = g ? {
     nome:          g.nome          ?? g.name         ?? 'GPU',
     carga:         g.carga         ?? g.percent       ?? g.load ?? 0,
@@ -53,7 +46,6 @@ function normalizar(raw) {
     temperatura:   g.temperatura   ?? g.temperature   ?? null,
   } : null
 
-  // --- Disco (array) ---
   const disco = Array.isArray(d) ? d.map((dk) => ({
     dispositivo: dk.dispositivo ?? dk.device      ?? dk.name ?? '',
     ponto:       dk.ponto       ?? dk.mountpoint   ?? dk.path ?? '',
@@ -63,7 +55,6 @@ function normalizar(raw) {
     livre_gb:    dk.livre_gb    ?? toGb(dk.free)   ?? 0,
   })) : []
 
-  // --- Rede ---
   const rede = {
     upload_bps:      n.upload_bps       ?? n.upload   ?? 0,
     download_bps:    n.download_bps     ?? n.download  ?? 0,
@@ -71,21 +62,12 @@ function normalizar(raw) {
     bytes_recebidos: n.bytes_recebidos  ?? n.bytes_recv  ?? 0,
   }
 
-  // --- Uptime (aceita numero de segundos ou objeto) ---
   let uptime
   if (typeof u === 'number') {
-    uptime = {
-      total_segundos: u,
-      horas:   Math.floor(u / 3600),
-      minutos: Math.floor((u % 3600) / 60),
-    }
+    uptime = { total_segundos: u, horas: Math.floor(u / 3600), minutos: Math.floor((u % 3600) / 60) }
   } else if (u && typeof u === 'object') {
     const s = u.total_segundos ?? u.seconds ?? u.uptime ?? 0
-    uptime = {
-      total_segundos: s,
-      horas:   u.horas   ?? Math.floor(s / 3600),
-      minutos: u.minutos ?? Math.floor((s % 3600) / 60),
-    }
+    uptime = { total_segundos: s, horas: u.horas ?? Math.floor(s / 3600), minutos: u.minutos ?? Math.floor((s % 3600) / 60) }
   } else {
     uptime = { total_segundos: 0, horas: 0, minutos: 0 }
   }
@@ -93,21 +75,20 @@ function normalizar(raw) {
   return { cpu, ram, gpu, disco, rede, uptime }
 }
 
-// Faz fetch e trata erros de rede/JSON
 async function fetchJson(url, opts) {
   const res = await fetch(url, opts)
-  try {
-    return await res.json()
-  } catch {
-    return null
-  }
+  try { return await res.json() } catch { return null }
 }
+
+// Quantas falhas consecutivas para declarar offline
+const FALHAS_LIMITE = 3
 
 export function useStats(intervalo = 3000) {
   const [stats,    setStats]    = useState(null)
   const [online,   setOnline]   = useState(null)
   const [hostname, setHostname] = useState('')
-  const timerRef = useRef(null)
+  const timerRef   = useRef(null)
+  const falhasRef  = useRef(0)  // contador de falhas consecutivas
 
   const poll = useCallback(async () => {
     const { apiKey } = getConfig()
@@ -120,19 +101,29 @@ export function useStats(intervalo = 3000) {
       }),
     ])
 
-    // --- Conexao ---
-    if (health.status === 'fulfilled' && health.value?.status === 'online') {
+    // ─── Conexao ─────────────────────────────────────────────────────────────
+    const healthOk = health.status === 'fulfilled' && health.value?.status === 'online'
+    // Em modo proxy (Railway), pc_local indica se o PC fisico esta online
+    // Qualquer status que nao seja 'online' (inclusive 'desconhecido') conta como offline
+    const pcLocal    = health.value?.pc_local
+    const pcLocalOff = pcLocal !== undefined && pcLocal.status !== 'online'
+
+    if (!healthOk || pcLocalOff) {
+      // Considera falha: incrementa contador
+      falhasRef.current += 1
+      if (falhasRef.current >= FALHAS_LIMITE) {
+        setOnline(false)
+      }
+    } else {
+      // Sucesso: reseta contador e marca online
+      falhasRef.current = 0
       setOnline(true)
       setHostname(health.value.hostname || '')
-    } else {
-      setOnline(false)
     }
 
-    // --- Stats ---
+    // ─── Stats ────────────────────────────────────────────────────────────────
     if (statsRes.status === 'fulfilled' && statsRes.value && !statsRes.value?.erro) {
-      console.log('[NEXUS] Stats bruto recebido:', statsRes.value)
       const normalizado = normalizar(statsRes.value)
-      console.log('[NEXUS] Stats normalizado:', normalizado)
       if (normalizado) setStats(normalizado)
     } else if (statsRes.status === 'rejected') {
       console.warn('[NEXUS] Falha ao buscar /stats:', statsRes.reason)

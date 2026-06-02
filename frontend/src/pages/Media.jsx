@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from '../components/Toast'
+import { Presentation } from './Presentation'
 
 // SVG inline de nota musical no topo
 function MusicIcon() {
@@ -94,6 +95,7 @@ const VolOff = () => (
 )
 
 export function Media({ request }) {
+  const [aba,        setAba]        = useState('midia')
   const [volume,    setVolume]    = useState(50)
   const [muted,     setMuted]     = useState(false)
   const [carregando, setCarregando] = useState(null)
@@ -140,7 +142,24 @@ export function Media({ request }) {
   }
 
   return (
-    <div className="p-5 space-y-8 flex flex-col items-center animate-fade-up">
+    <div className="animate-fade-up">
+      {/* Seletor de secao */}
+      <div className="mx-4 mt-4 flex p-1 gap-1 rounded-2xl"
+        style={{ background: '#12122A', border: '1px solid #1e1e3a' }}>
+        {[{ id: 'midia', label: 'Midia' }, { id: 'apresentacao', label: 'Apresentacao' }].map((t) => (
+          <button key={t.id} onClick={() => setAba(t.id)}
+            className="flex-1 py-2.5 rounded-xl font-grotesk font-semibold text-sm transition-all"
+            style={aba === t.id
+              ? { background: 'linear-gradient(90deg,#7C3AED,#3B82F6,#06B6D4)', color: '#fff' }
+              : { background: 'transparent', color: '#94A3B8' }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {aba === 'apresentacao' && <Presentation request={request} />}
+
+      {aba === 'midia' && <div className="p-5 space-y-8 flex flex-col items-center">
       {/* Icone de musica */}
       <MusicIcon />
 
@@ -226,6 +245,7 @@ export function Media({ request }) {
           ))}
         </div>
       </div>
-    </div>
+    </div>}
+  </div>
   )
 }

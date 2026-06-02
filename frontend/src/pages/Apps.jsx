@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { ActionButton } from '../components/ActionButton'
 import { Modal } from '../components/Modal'
 import { toast } from '../components/Toast'
+import { Terminal } from './Terminal'
 
 // Mapa de icones por nome de app
 const ICONES = {
@@ -116,6 +117,7 @@ export function Apps({ request }) {
         {[
           { id: 'apps',      label: 'Apps'      },
           { id: 'processos', label: 'Processos' },
+          { id: 'terminal',  label: 'Terminal'  },
         ].map((t) => (
           <button
             key={t.id}
@@ -203,6 +205,9 @@ export function Apps({ request }) {
               ))}
         </div>
       )}
+
+      {/* Terminal embutido */}
+      {aba === 'terminal' && <Terminal request={request} />}
 
       <Modal
         aberto={!!alvo}
