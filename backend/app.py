@@ -236,6 +236,16 @@ def get_logs():
         return jsonify([])
 
 
+@app.route('/logs/clear', methods=['POST'])
+def clear_logs():
+    try:
+        with open(ACTION_LOG, 'w', encoding='utf-8') as f:
+            json.dump([], f)
+    except Exception:
+        pass
+    return jsonify({'mensagem': 'Logs limpos'})
+
+
 # ─── Blueprints ───────────────────────────────────────────────────────────────
 app.register_blueprint(power_bp)
 app.register_blueprint(stats_bp)

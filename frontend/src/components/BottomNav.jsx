@@ -82,6 +82,24 @@ function IconLogs({ color }) {
     </svg>
   )
 }
+function IconTerminal({ color }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+      stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="4 17 10 11 4 5" />
+      <line x1="12" y1="19" x2="20" y2="19" />
+    </svg>
+  )
+}
+function IconSlides({ color }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+      stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <polygon points="10 8 16 12 10 16 10 8" fill={color} stroke="none" />
+    </svg>
+  )
+}
 function IconConfig({ color }) {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
@@ -118,14 +136,16 @@ const ABAS = [
 ]
 
 const MAIS_ITENS = [
-  { id: 'screenshot',  label: 'Tela',        Icon: IconTela   },
-  { id: 'automations', label: 'Automações',  Icon: IconAuto   },
-  { id: 'logs',        label: 'Logs',        Icon: IconLogs   },
-  { id: 'settings',    label: 'Config',      Icon: IconConfig },
+  { id: 'screenshot',   label: 'Tela',        Icon: IconTela     },
+  { id: 'terminal',     label: 'Terminal',    Icon: IconTerminal },
+  { id: 'automations',  label: 'Automações',  Icon: IconAuto     },
+  { id: 'presentation', label: 'Slides',      Icon: IconSlides   },
+  { id: 'logs',         label: 'Logs',        Icon: IconLogs     },
+  { id: 'settings',     label: 'Config',      Icon: IconConfig   },
 ]
 
 // Páginas que pertencem ao drawer "Mais"
-const MAIS_PAGES = new Set(['screenshot', 'automations', 'logs', 'settings'])
+const MAIS_PAGES = new Set(['screenshot', 'terminal', 'automations', 'presentation', 'logs', 'settings'])
 
 export function BottomNav({ ativa, onChange }) {
   const [drawer, setDrawer] = useState(false)

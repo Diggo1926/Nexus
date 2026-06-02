@@ -11,8 +11,10 @@ import { Apps } from './pages/Apps'
 import { Media } from './pages/Media'
 import { Settings } from './pages/Settings'
 import { Screenshot } from './pages/Screenshot'
+import { Terminal } from './pages/Terminal'
 import { Automations } from './pages/Automations'
 import { Logs } from './pages/Logs'
+import { Presentation } from './pages/Presentation'
 
 function Inner() {
   const [aba, setAba] = useState('dashboard')
@@ -43,10 +45,12 @@ function Inner() {
         {aba === 'power'       && <Power online={online} request={request} />}
         {aba === 'apps'        && <Apps request={request} />}
         {aba === 'media'       && <Media request={request} />}
-        {aba === 'settings'    && <Settings onSave={refresh} />}
-        {aba === 'screenshot'  && <Screenshot request={request} />}
-        {aba === 'automations' && <Automations request={request} />}
-        {aba === 'logs'        && <Logs request={request} />}
+        {aba === 'settings'      && <Settings onSave={refresh} />}
+        {aba === 'screenshot'    && <Screenshot request={request} />}
+        {aba === 'terminal'      && <Terminal request={request} />}
+        {aba === 'automations'   && <Automations request={request} />}
+        {aba === 'presentation'  && <Presentation request={request} />}
+        {aba === 'logs'          && <Logs request={request} />}
       </main>
 
       <BottomNav ativa={aba} onChange={setAba} />
